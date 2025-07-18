@@ -4,7 +4,16 @@ import sqlite3
 import cv2
 import os
 import imutils
+import sys
 entry_codigo = 3045
+
+def resource_path(relative_path):
+    """Obtiene la ruta absoluta al recurso, funciona para dev y para PyInstaller."""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 def capturar_rostros(personName):
     dataPath = 'C:\g0\VS\Data' #Cambia a la ruta donde hayas almacenado Data
@@ -18,8 +27,12 @@ def capturar_rostros(personName):
         count = 0
     cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
     #cap = cv2.VideoCapture('Donald.mp4')  video
-
-    faceClassif = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_default.xml')
+    # para PyInstaller
+    
+    cascade_path = resource_path("cv2/data/haarcascades/haarcascade_frontalface_default.xml")
+    faceClassif = cv2.CascadeClassifier(cascade_path)   
+    #  para interprete
+    #faceClassif = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_default.xml')
    
 
     while True:
@@ -57,7 +70,8 @@ def buscar_datos():
     listbox.delete(0, tk.END)
     if results:
         for result in results:
-            listbox.insert(tk.END, f"{result[0]} \t {result[2]} \t {result[1]}")
+            # Separa con un espacio en blanco entre Tipo y UserName
+            listbox.insert(tk.END, f"{result[0]}\t{result[2]} \t{result[1]}")
     else:
         messagebox.showwarning("Error", "Código no encontrado")
     
@@ -69,7 +83,8 @@ def seleccionar_fila(event):
         index = seleccion[0]
         data = listbox.get(index)
         data_parts = data.split('\t')
-        personName = f"{data_parts[0]}-{data_parts[1]}-{data_parts[2]}"
+        # Quitar el guion entre ID y Tipo en el nombre del directorio
+        personName = f"{data_parts[0]}{data_parts[1]}-{data_parts[2]}"
         personName = personName.replace(" ", "")
         messagebox.showinfo("Fila Seleccionada", personName)
         capturar_rostros(personName)  # Execute script
@@ -105,9 +120,9 @@ def validasocio():
     # Add header labels
     header_frame = tk.Frame(root, bg="#34495e")
     header_frame.place(relx=0.5, rely=0.25, anchor="n", relwidth=0.8)
-    tk.Label(header_frame, text="ID", bg="#34495e", fg="white", font=("Helvetica", 14)).grid(row=0, column=0, padx=10, pady=5)
-    tk.Label(header_frame, text="Tipo", bg="#34495e", fg="white", font=("Helvetica", 14)).grid(row=0, column=1, padx=10, pady=5)
-    tk.Label(header_frame, text="Nombre", bg="#34495e", fg="white", font=("Helvetica", 14)).grid(row=0, column=2, padx=10, pady=5)
+    tk.Label(header_frame, text="ID", bg="#34495e", fg="white", font=("Helvetica", 14)).grid(row=0, column=0, padx=(10,0), pady=5, sticky="w")
+    tk.Label(header_frame, text="Tipo", bg="#34495e", fg="white", font=("Helvetica", 14)).grid(row=0, column=1, padx=(0,0), pady=5, sticky="w")
+    tk.Label(header_frame, text="Nombre", bg="#34495e", fg="white", font=("Helvetica", 14)).grid(row=0, column=2, padx=10, pady=5, sticky="w")
 
     listbox = tk.Listbox(root, font=("Helvetica", 14), bg="#34495e", fg="white")
     listbox.place(relx=0.5, rely=0.3, anchor="n", relwidth=0.8, relheight=0.6)
